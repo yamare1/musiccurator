@@ -1,4 +1,4 @@
-# spotifyproject
+# Music Curator
 Yonathan, Jayden, Varun.
-The user inputs the artist name or song, which will get the lyrics to the song.
-The shazam will get the lyrics to the artist.
+The user inputs the artist's name and one of their songs and an API will get the lyrics to the song.
+Additionally, the Shazam API will get data about both the song and artist.
