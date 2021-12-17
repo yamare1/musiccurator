@@ -1,84 +1,96 @@
 import React, { Component } from 'react';
 import axios from 'axios';
-import Spinner from '../layouts/Spinner';
 import { Link } from 'react-router-dom';
 import Moment from 'react-moment';
 
+import Spinner from '../layout/Spinner';
+
 class Lyrics extends Component {
-	state = {
-		track: {},
-		lyrics: {}
-	};
+  constructor(props) {
+    super(props);
 
-	componentDidMount() {
-		axios
-			.get(
-				`https://cors-anywhere.herokuapp.com/https://api.musixmatch.com/ws/1.1/track.lyrics.get?
-                track_id=${this.props.match.params.id}
-                &apikey=${process.env.REACT_APP_MM_KEY}`
-			)
-			.then((res) => {
-				console.log(res.data);
-				this.setState({ lyrics: res.data.message.body.lyrics });
+    this.state = {
+      track: {},
+      lyrics: {}
+    };
+  }
 
-				return axios.get(
-					`https://cors-anywhere.herokuapp.com/https://api.musixmatch.com/ws/1.1/track.get?track_id=${this
-						.props.match.params.id}
-                    &apikey=${process.env.REACT_APP_MM_KEY}`
-				);
-			})
-			.then((res) => {
-				console.log(res.data);
-				this.setState({ track: res.data.message.body.track });
-			})
-			.catch((err) => console.log(err));
-	}
+  async getLyrics() {
+    const CORS_URL = 'https://stark-dusk-62893.herokuapp.com/';
+    const BASE_URL = 'http://api.musixmatch.com/ws/1.1/';
+    const API_KEY = `&apikey=${process.env.REACT_APP_MM_KEY}`;
 
-	render() {
-		const { track, lyrics } = this.state;
+    // Get the lyrics to a particular track
+    const lyricsRes = await axios.get(`${CORS_URL}${BASE_URL}track.lyrics.get?track_id=${this.props.match.params.id}${API_KEY}`);
 
-		return (
-			<div>
-				{// Object.keys() checks for the keys in a object if they exists!
-				track === undefined ||
-				lyrics === undefined ||
-				Object.keys(track).length === 0 ||
-				Object.keys(lyrics).length === 0 ? (
-					<Spinner />
-				) : (
-					<React.Fragment>
-						<Link to="/" className="btn btn-dark btn-sm mb-4">
-							GO BACK!
-						</Link>
-						<div className="card">
-							<h5 className="card-header">
-								{track.track_name} by{''} <span className="text_secondary">{track.artist_name}</span>
-							</h5>
-							<div className="card-body">
-								<p className="card-text">{lyrics.lyrics_body}</p>
-							</div>
-						</div>
+    this.setState({ lyrics: lyricsRes.data.message.body.lyrics});
+  }
 
-						<ul className="list-group mt-3">
-							<li className="list-group-item">
-								<strong>ALbum ID</strong> : {track.album_id}
-							</li>
-							<li className="list-group-item">
-								<strong>Song genre</strong> : {''}
-								{track.primary_genres.music_genre_list[0].music_genre.music_genre_name}
-							</li>
-                            <li className="list-group-item">
-                                <strong>Release Date</strong> : 
-                                <Moment format="MM/DD/YYYY">
-                                {track.first_release_date}
-                                </Moment>
-                            </li>
-						</ul>
-					</React.Fragment>
-				)}
-			</div>
-		);
-	}
+  async getTrackName() {
+    const CORS_URL = 'https://stark-dusk-62893.herokuapp.com/';
+    const BASE_URL = 'http://api.musixmatch.com/ws/1.1/';
+    const API_KEY = `&apikey=${process.env.REACT_APP_MM_KEY}`;
+
+    // Get the track name
+    const trackRes = await axios.get(`${CORS_URL}${BASE_URL}track.get?track_id=${this.props.match.params.id}${API_KEY}`);
+
+    this.setState({ track: trackRes.data.message.body.track });
+  }
+
+  componentDidMount() {
+    this.getLyrics()
+    this.getTrackName();
+  }
+
+  render() {
+    const { track, lyrics } = this.state;
+
+    if (
+      track === undefined ||
+      lyrics === undefined ||
+      Object.keys(track).length === 0 ||
+      Object.keys(lyrics).length === 0
+    ) {
+      return <Spinner />;
+    } else {
+      return (
+        <React.Fragment>
+          <Link to="/" className="btn btn-back btn-md mb-4">
+            Go Back
+          </Link>
+          <div className="card shadow-sm">
+            <h5 className="card-header">
+              {track.track_name} by {' '}
+              <span className="text-secondary">{track.artist_name}</span>
+            </h5>
+            <div className="card-body">
+              <p className="card-text">{lyrics.lyrics_body}</p>
+            </div>
+          </div>
+          <ul className="list-group mt-3 mb-3 shadow-sm">
+            <li className="list-group-item">
+              <strong>Song Genre</strong>:{' '}
+              {
+                track.primary_genres.music_genre_list.length === 0 ?
+                'A genre is not available for this track.' :
+                track.primary_genres.music_genre_list[0].music_genre.music_genre_name
+                }
+            </li>
+            <li className="list-group-item">
+              <strong>Explicit Words</strong>:{' '}
+              {track.explicit === 0 ? 'No': 'Yes'}
+            </li>
+            <li className="list-group-item">
+              <strong>Release Date</strong>:{' '}
+              <Moment format="MM/DD/YYYY">
+                {track.first_release_date}
+              </Moment>
+            </li>
+          </ul>
+        </React.Fragment>
+      );
+    }
+  }
 }
 
 export default Lyrics;
