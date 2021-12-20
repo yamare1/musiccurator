@@ -1,6 +1,6 @@
 {
     "hosting": {
-      "public": "build/shazamproj-yvj-c8fae",
+      "public": "build/musiccurator",
       "ignore": [
         "firebase.json",
         "**/.*",
